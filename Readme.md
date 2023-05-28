@@ -1,5 +1,4 @@
-COEN 317 Spring 2023 Final Project
-Group members: W1650189, W1651034, W1650949, W1651155
+COEN 317 Spring 2023 Final Project. Group members: W1650189, W1651034, W1650949, W1651155
 
 I. API
 1. AddFile
