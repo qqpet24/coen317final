@@ -1,6 +1,21 @@
-const Chord = require("./Chord");
+const Chord = require("./Chord.js");
+
 
 (async ()=>{
-    var chord = new Chord("127.0.0.1",8081,"./files1","startNode");
+    const chord = new Chord("127.0.0.1", 8081, "./files1", "startNode");
     // setInterval(()=>{chord.showData()},2000);
 })();
+
+// 类Chord并在指定的 IP 地址（“127.0.0.1”）和端口（8081）上启动
+// Chord 节点服务器。服务器使用默认文件路径“./files1”进行初始化，
+// 并设置为作为新节点启动（“startNode”模式）
+
+//当您打开浏览器并访问服务器时，
+// 您会收到响应{"code":404,"message":"No Found"}。
+// 此响应表明服务器收到的请求与任何已定义的路由或端点都不匹配。
+
+//要接收不同的响应，
+// 您需要使用与定义的路由之一相对应的有效 URL 和 HTTP 方法访问服务器。
+// 例如，如果您使用 GET 方法访问“ http://127.0.0.1:8081/ping ”，
+// 您应该会收到代码为 200 的响应和“OK”消息。
+// 同样，使用适当的方法访问其他有效路由应该会触发相应的功能并返回预期的响应。

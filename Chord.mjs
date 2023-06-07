@@ -1,10 +1,20 @@
 // Import the necessary Node.js modules and external packages.
-const fs = require("fs");//fs文件系统操作
-const SHA256 = require("js-sha256");//SHA256 哈希
-const http = require('http');//创建 HTTP 服务器
-const events = require('events');//事件处理
-const axios = require('axios');//发出 HTTP 请求
-class Chord{
+import fs from 'fs'; // fs文件系统操作
+import SHA256 from 'js-sha256'; // SHA256 哈希
+import http from 'http'; // 创建 HTTP 服务器
+import { EventEmitter } from 'events'; // 事件处理
+import axios from 'axios'; // 发出 HTTP 请求
+import express from "express";
+// const express = require("express");
+// const cors = require("cors"); // Import the cors package
+import cors from "cors";
+
+
+const app = express();
+app.use(cors()); // Use the cors middleware
+
+
+export default class Chord{
     // The key feature of Chord is its ability to
     // efficiently locate a node in a network given a key.
     constructor(ip,port,defaultFilePath,initMode) {
@@ -33,10 +43,11 @@ class Chord{
                 // 通常是通过调用eventEmitter.emit("finally")），
                 // 箭头函数中指定的回调函数被执行。
                 // response.setHeader("Access-Control-Allow-Origin", "*"); // Set Access-Control-Allow-Origin header to allow all origins
+                // response.writeHead(result.code,result.header);
 
-                const {code,body,message} = result;
+                const {code,header,message} = result;
                 //解构赋值
-                response.writeHead(code,body);
+                response.writeHead(code,header);
                 // 回调函数负责写入 HTTP 响应标头并结束响应。
                 response.end(message);
                 //它使用response从 HTTP 服务器接收到的对象
@@ -55,7 +66,7 @@ class Chord{
                 }else if(request.url===("/ping") && request.method === "GET"){
                     result = await this.ack();
                     eventEmitter.emit("finally");
-                //addNode功能是指将新节点添加到 Chord 网络的过程。
+                    //addNode功能是指将新节点添加到 Chord 网络的过程。
                     // Chord 协议是一种分布式哈希表 (DHT) 算法，
                     // 允许节点加入和离开网络，同时保持可扩展且高效的键值查找机制。
                 }else if(request.url.indexOf("/addNodeStep1") === 0 && request.method === "GET"){
@@ -76,27 +87,27 @@ class Chord{
                     else result = await this.addNodeServerStep2(request.url.split("=")[1]);
                     eventEmitter.emit("finally");
                 }
-                //该路由在网络中的所有节点上执行，包括新节点。它接收另一个节点的 URL 作为查询参数。
-                // 它检查节点 URL 是否已经存在，fingerTable以避免重复条目。
-                // 如果 URL 已经存在，它会返回一个200 OK响应。
+                    //该路由在网络中的所有节点上执行，包括新节点。它接收另一个节点的 URL 作为查询参数。
+                    // 它检查节点 URL 是否已经存在，fingerTable以避免重复条目。
+                    // 如果 URL 已经存在，它会返回一个200 OK响应。
                 // 如果 URL 有效且唯一，它会将节点添加到其fingerTable并返回200 OK响应。
                 else if(request.url.indexOf("/addNodeStep3") === 0 && request.method === "GET"){
                     if(request.url.split("=").length!==2) result = this.formCommonResponse(400);
                     else result = await this.addNodeServerStep3(request.url.split("=")[1]);
                     eventEmitter.emit("finally");
                 }
-                // 这条路线负责获取所有的博客文章。
-                // 它从目录中读取文件defaultFilePath并创建一个包含帖子 ID 和内容的帖子对象数组。
+                    // 这条路线负责获取所有的博客文章。
+                    // 它从目录中读取文件defaultFilePath并创建一个包含帖子 ID 和内容的帖子对象数组。
                 // 然后它返回状态代码为 200 的响应和帖子数组。
                 else if (request.url === "/api/posts" && request.method === "GET") {
                     result = await this.getAllPosts();
                     eventEmitter.emit("finally");
                 }
-                //此路由用于创建新的博客文章。它接收请求正文中的帖子数据，
-                // 并使用 SHA256 哈希为帖子生成唯一 ID。
-                // 它检查目录defaultFilePath中是否已存在具有相同 ID 的文件
-                //如果是，它会返回状态代码为 409（冲突）的响应。
-                // 如果该文件不存在，它会将帖子数据写入具有生成的 ID 的文件，
+                    //此路由用于创建新的博客文章。它接收请求正文中的帖子数据，
+                    // 并使用 SHA256 哈希为帖子生成唯一 ID。
+                    // 它检查目录defaultFilePath中是否已存在具有相同 ID 的文件
+                    //如果是，它会返回状态代码为 409（冲突）的响应。
+                    // 如果该文件不存在，它会将帖子数据写入具有生成的 ID 的文件，
                 // 并返回状态代码为 200 的响应和已创建帖子的 ID。
                 else if (request.url === "/api/posts" && request.method === "POST") {
                     let body = "";
@@ -110,9 +121,9 @@ class Chord{
                         eventEmitter.emit("finally");
                     });
                 }
-                // 此路由根据提供的postId参数获取单个博客文章。
-                // 它检查目录中是否存在具有给定 ID 的文件defaultFilePath。
-                // 如果是，它会从文件中读取内容并返回状态代码为 200 的响应以及包含 ID 和内容的 post 对象。
+                    // 此路由根据提供的postId参数获取单个博客文章。
+                    // 它检查目录中是否存在具有给定 ID 的文件defaultFilePath。
+                    // 如果是，它会从文件中读取内容并返回状态代码为 200 的响应以及包含 ID 和内容的 post 对象。
                 // 如果文件不存在，它会返回状态代码为 404（未找到）的响应。
                 else if (
                     request.url.startsWith("/api/posts/") &&
@@ -337,4 +348,4 @@ class Chord{
         {console.log(this.fingerTable);}
     }
 }
-module.exports = Chord;
+
