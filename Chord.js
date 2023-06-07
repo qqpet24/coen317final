@@ -43,6 +43,9 @@ class Chord{
                     if(request.url.split("=").length!==2) result = this.formCommonResponse(400);
                     else result = await this.addNodeServerStep3(request.url.split("=")[1]);
                     eventEmitter.emit("finally");
+                }else if (request.url === "/api/posts" && request.method === "GET") {
+                    result = await this.getAllPosts();
+                    eventEmitter.emit("finally");
                 }else if(request.method==="OPTIONS"){
                     result = this.formCommonResponse(200);
                     eventEmitter.emit("finally");
@@ -182,6 +185,25 @@ class Chord{
         }catch (e){
             console.log(e);
             return false;
+        }
+    }
+    async getAllPosts(){
+        try{
+            if(!fs.existsSync(this.defaultFilePath)) fs.mkdirSync(this.defaultFilePath);
+            const posts = [];
+            const files = fs.readdirSync(this.defaultFilePath);
+            for (const file of files) {
+                const data = fs.readFileSync(`${this.defaultFilePath}/${file}`).toString();
+                const post = {
+                    id: file,
+                    content: data,
+                };
+                posts.push(post);
+            }
+            return this.formResponse(200, posts);
+        }catch (e){
+            console.log(e);
+            return this.formCommonResponse(500);
         }
     }
     showData(){
