@@ -16,7 +16,7 @@ class Chord{
             var result = this.formCommonResponse(404);
             var eventEmitter = new events.EventEmitter();
             eventEmitter.on("finally",()=>{
-                response.writeHead(result.code,result.body);
+                response.writeHead(result.code,result.header);
                 response.end(result.message);
             });
             try{
@@ -42,6 +42,9 @@ class Chord{
                 }else if(request.url.indexOf("/addNodeStep3") === 0 && request.method === "GET"){
                     if(request.url.split("=").length!==2) result = this.formCommonResponse(400);
                     else result = await this.addNodeServerStep3(request.url.split("=")[1]);
+                    eventEmitter.emit("finally");
+                }else if(request.method==="OPTIONS"){
+                    result = this.formCommonResponse(200);
                     eventEmitter.emit("finally");
                 }else{
                     eventEmitter.emit("finally");
@@ -86,7 +89,8 @@ class Chord{
             "Content-Type":"application/json",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
-            "Access-Control-Max-Age": 86400
+            "Access-Control-Max-Age": 86400,
+            "Access-Control-Allow-Headers":"Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers"
         },
         "message": JSON.stringify({"code":code,"message":message})
     }}
