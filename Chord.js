@@ -53,6 +53,10 @@ class Chord{
                 }else if(request.method==="OPTIONS"){
                     result = this.formCommonResponse(200);
                     eventEmitter.emit("finally");
+                }else if (request.url.indexOf("/deleteFile") === 0 && request.method === "DELETE") {
+                    if(request.url.split("=").length!==2) result = this.formCommonResponse(400);
+                    result = await this.deleteFile(request.url.split("=")[1]);
+                    eventEmitter.emit("finally");
                 }else{
                     eventEmitter.emit("finally");
                 }
@@ -257,5 +261,26 @@ class Chord{
     showData(){
         {console.log(this.fingerTable);}
     }
+    async deleteFile(fileID){
+        const properNodeID = this.getProperNode(fileID);
+        if (this.fingerTable[properNodeID].nodeID === this.nodeID) {
+            try{
+                const filePath = `${this.defaultFilePath}/${fileID}`;
+                if (!fs.existsSync(filePath)) return this.formCommonResponse(404);
+                fs.unlinkSync(filePath);
+                return this.formCommonResponse(200);
+            }catch (e){
+                return this.formCommonResponse(500);
+            }
+        }else{
+            try {
+                const { data } = await axios.delete(`http://${this.fingerTable[properNodeID].url}/deleteFile?id=${fileID}`);
+                return this.formResponse(data.code, data.message);
+            } catch (error) {
+                console.error("Error deleting file:", error);
+                return this.formCommonResponse(500);
+            }
+        }
+    };
 }
 module.exports = Chord;
