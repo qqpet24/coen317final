@@ -44,6 +44,9 @@ class Chord{
                     else result = await this.addNodeServerStep3(request.url.split("=")[1]);
                     eventEmitter.emit("finally");
                 }else if (request.url === "/api/posts" && request.method === "GET") {
+                    result = await this.getAllLocalPosts();
+                    eventEmitter.emit("finally");
+                }else if (request.url === "/api/allposts" && request.method === "GET") {
                     result = await this.getAllPosts();
                     eventEmitter.emit("finally");
                 }else if(request.method==="OPTIONS"){
@@ -187,7 +190,7 @@ class Chord{
             return false;
         }
     }
-    async getAllPosts(){
+    async getAllLocalPosts(){
         try{
             if(!fs.existsSync(this.defaultFilePath)) fs.mkdirSync(this.defaultFilePath);
             const posts = [];
@@ -201,6 +204,35 @@ class Chord{
                 posts.push(post);
             }
             return this.formResponse(200, posts);
+        }catch (e){
+            console.log(e);
+            return this.formCommonResponse(500);
+        }
+    }
+    async getAllPosts(){
+        try{
+            let allData = [];
+            for(var i = 0;i<this.fingerTable.length;i++){
+                var {data} = await axios.get(`http://${this.fingerTable[i].url}/api/posts`);
+                allData = allData.concat(data.message);
+            }
+            allData.sort((a,b)=>{
+                let defaultOrder = -1;
+                try{
+                    let objectA = JSON.parse(a["content"]);
+                    let objectB = JSON.parse(b["content"]);
+                    if(objectA["timestamp"]!==undefined&&objectB["timestamp"]===undefined) return -1;
+                    if(objectA["timestamp"]===undefined&&objectB["timestamp"]!==undefined) return 1;
+                    if(objectA["timestamp"]!==undefined&&objectB["timestamp"]!==undefined){
+                        return parseInt(objectB["timestamp"]) - parseInt(objectA["timestamp"]);
+                    }else{
+                        return -1;
+                    }
+                }catch (e){
+                    return -1;
+                }
+            })
+            return this.formResponse(200, allData);
         }catch (e){
             console.log(e);
             return this.formCommonResponse(500);
