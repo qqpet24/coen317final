@@ -43,10 +43,10 @@ class Chord{
                     if(request.url.split("=").length!==2) result = this.formCommonResponse(400);
                     else result = await this.addNodeServerStep3(request.url.split("=")[1]);
                     eventEmitter.emit("finally");
-                }else if (request.url === "/api/posts" && request.method === "GET") {
+                }else if (request.url === "/api/localposts" && request.method === "GET") {
                     result = await this.getAllLocalPosts();
                     eventEmitter.emit("finally");
-                }else if (request.url === "/api/allposts" && request.method === "GET") {
+                }else if (request.url === "/api/posts" && request.method === "GET") {
                     result = await this.getAllPosts();
                     eventEmitter.emit("finally");
                 }else if(request.method==="OPTIONS"){
@@ -213,7 +213,7 @@ class Chord{
         try{
             let allData = [];
             for(var i = 0;i<this.fingerTable.length;i++){
-                var {data} = await axios.get(`http://${this.fingerTable[i].url}/api/posts`);
+                var {data} = await axios.get(`http://${this.fingerTable[i].url}/api/localposts`);
                 allData = allData.concat(data.message);
             }
             allData.sort((a,b)=>{
