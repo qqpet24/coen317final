@@ -11,6 +11,7 @@ class Chord{
         this.url = this.ip+":"+this.port;
         this.nodeID = this.getNodeId(this.url);
         this.fingerTable = [];
+        this.heartbeatInterval = 60000;
 
         var server = http.createServer ( async (request,response)=>{
             var result = this.formCommonResponse(404);
@@ -66,6 +67,21 @@ class Chord{
             this.fingerTable.push({"url":this.url,"nodeID":this.nodeID});
         }else{
         }
+    }
+    startHeartbeatTimer() {
+        setInterval(async () => {
+            let nowNode = "";
+            try{
+                for(var i = 0;i<this.fingerTable.length;i++){
+                    nowNode = this.fingerTable[i]["url"];
+                    var {data} = await axios.get(`http://${this.fingerTable[i]["url"]}/ping`);
+                    if(data.code === 200 && data.message === "OK") continue;
+                    else throw(`Detect failure ${this.fingerTable[i]["url"]}`);
+                }
+            }catch (e){
+                console.log(`Detect failure ${nowNode}`);
+            }
+        }, this.heartbeatInterval);
     }
     getNodeId(url){
         var hash = SHA256.sha256.create();
