@@ -8,7 +8,7 @@ class PerformanceTest{
         let successCnt = 0;
         let totalTime = 0;
         let sleepInterval = 1;
-        let concurrentBatch = 1;
+        let concurrentBatch = 10;
         setTimeout(() => {
             console.log(`Total Requests: ${totalCnt}, within ${timeout} ms,${successCnt} requests success,${totalCnt-successCnt} requests failed,${totalTime/successCnt} ms average successful requests' response time`);
         }, timeout);
@@ -30,7 +30,7 @@ class PerformanceTest{
         let totalTime = 0;
         let sleepInterval = 1;
         let concurrentBatch = 2;
-        let fileID = "fed4749bca53d8f83ed623d8687149ed1fb4b619b17a85b15bf521c3b92db248";
+        let fileID = "934fc3b55e0f5d82a87200a4fc91a858fd01300accf4632cb07da72bacfc8c1e";
         setTimeout(() => {
             console.log(`Total Requests: ${totalCnt}, within ${timeout} ms,${successCnt} requests success,${totalCnt-successCnt} requests failed,${totalTime/successCnt} ms average successful requests' response time`);
         }, timeout);
@@ -63,8 +63,8 @@ class PerformanceTest{
 }
 (async ()=>{
     try{
-        for(var i = 200;i<=4000;i+=200){
-            var performanceTest = new PerformanceTest("34.16.130.141:8088");
+        for(var i = 1000;i<=30000;i+=1000){
+            var performanceTest = new PerformanceTest("127.0.0.1:8081");
             performanceTest.generateGetSingleFileTest(i);
             await performanceTest.sleep(1500);
         }

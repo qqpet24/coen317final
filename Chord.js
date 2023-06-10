@@ -131,14 +131,18 @@ class Chord{
         var hash = SHA256.sha256.create();
         hash.update(data);
         var properNodeID = this.getProperNode(hash.hex());
-        if(this.fingerTable[properNodeID].nodeID===this.nodeID){
-            if(!fs.existsSync(this.defaultFilePath)) fs.mkdirSync(this.defaultFilePath);
-            if(fs.existsSync(`${this.defaultFilePath}/${hash.hex()}`)) return this.formCommonResponse(409);
-            await fs.writeFileSync(`${this.defaultFilePath}/${hash.hex()}`,data);
-            return this.formResponse(200,hash.hex());
-        }else{
-            const {returnData} = await axios.post(`http://${this.fingerTable[properNodeID].url}/addFile`,data);
-            return this.formResponse(200,hash.hex());
+        try{
+            if(this.fingerTable[properNodeID].nodeID===this.nodeID){
+                if(!fs.existsSync(this.defaultFilePath)) fs.mkdirSync(this.defaultFilePath);
+                if(fs.existsSync(`${this.defaultFilePath}/${hash.hex()}`)) return this.formCommonResponse(409);
+                await fs.writeFileSync(`${this.defaultFilePath}/${hash.hex()}`,data);
+                return this.formResponse(200,hash.hex());
+            }else{
+                const {returnData} = await axios.post(`http://${this.fingerTable[properNodeID].url}/addFile`,data);
+                return this.formResponse(200,hash.hex());
+            }
+        }catch (e){
+            return this.formCommonResponse(500);
         }
     }
     async getFile(hash){
